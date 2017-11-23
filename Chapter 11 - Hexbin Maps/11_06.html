@@ -116,11 +116,17 @@ function rollupHexPoints(data) {
 
 	});
 
-	// Keep 20 as the maximum color scale domain value
-	var maxValue = Math.min(20, maxCount);
+	// Determine exponent for the colorScale interpolator
+	var exponent = 10;
 
 	// Create colorScale as soon as maximum number of datapoints is determined
-	colorScale = d3.scaleSequential(d3.interpolateViridis).domain([maxValue, 1]);	
+	colorScale = d3.scaleSequential(function(t) {
+
+		var tNew = Math.pow(t, exponent);
+		return d3.interpolateViridis(tNew);
+
+	}).domain([maxCount, 1]);	
+	
 
 	return data;
 
@@ -153,7 +159,6 @@ function getDatapoints(data) {
 			url: el.Website
 		};
 	});
-
 
 } // getDatapoints()
 
