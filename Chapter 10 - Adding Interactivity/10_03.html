@@ -272,13 +272,17 @@ function ready(world) {
       projection.scale(projectionScale);
       prevTransformScale = transformScale;
 
-    } else { // if the user pans (NOT using the mousewheel or equivalent)
+    } else if (event === 'mousemove') { // if the user pans
 
       // Change the rotation according to the user interaction
       var r = projection.rotate();
       rotation = [r[0] + dx * 0.4, r[1] - dy * 0.5, r[2]];
       projection.rotate(rotation);
 
+    } else { // fallback
+
+      console.warn('invalid mouse event in zoomed()');
+    
     }
 
     // Rerender the globe
@@ -310,7 +314,6 @@ function ready(world) {
       Math.abs(pos[1] - projection(projection.invert(pos))[1]) < 0.5; // checking if the mouse is within the globe bounds 
     
     selected = inGlobe && pickedColor[3] === 255 ? pickedColor[0] : false; // checking for inGlobe (above) and antialiasing
-
 
     requestAnimationFrame(function() {
       renderScene(countries, selected);
