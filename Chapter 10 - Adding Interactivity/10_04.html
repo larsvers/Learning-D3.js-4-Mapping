@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>10 Canvas interact - example 5</title>
+<title>10 Canvas interact - example 4</title>
 <meta charset="utf-8">
 
 <script src="//d3js.org/d3.v4.min.js"></script>
@@ -290,8 +290,8 @@ function ready(error, world, forests) {
     return d3.ascending(a.properties.admin, b.properties.admin);
   });
 
-  console.log(countries);
-  console.log(forests);
+  console.log('countries', countries);
+  console.log('forests', forests);
 
   insertForestDataBinary(); // ~ 1 ms
   // insertForestDataLinear(); // ~ 5 ms
@@ -376,13 +376,17 @@ function ready(error, world, forests) {
       projection.scale(projectionScale);
       prevTransformScale = transformScale;
 
-    } else { // if the user pans (NOT using the mousewheel or equivalent)
+    } else if (event === 'mousemove') { // if the user pans
 
       // Change the rotation according to the user interaction
       var r = projection.rotate();
       rotation = [r[0] + dx * 0.4, r[1] - dy * 0.5, r[2]];
       projection.rotate(rotation);
 
+    } else { // fallback
+
+      console.warn('invalid mouse event in zoomed()');
+    
     }
 
     // Rerender the globe
