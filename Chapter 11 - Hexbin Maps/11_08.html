@@ -147,8 +147,8 @@ a:hover {
 		</div>
 
 		<div id="change-scale">
-			<div id="change-scale-intro">Change the maximum value for the color scale: </div>
-			<input type="range" id="change-scale-input" min="5">
+			<div id="change-scale-intro">Change the color scale interpolator: </div>
+			<input type="range" id="change-scale-input" min="1">
 			<div id="change-scale-value"></div>
 		</div>
 
@@ -177,6 +177,7 @@ a:hover {
 var projection,
 		hexRadius = 3.5,
 		hexbin,
+		maxCount,
 		colorScale,
 		mouseInteractivity,
 		listChange = 1,
@@ -216,7 +217,7 @@ function drawHexmap(points) {
 
 function rollupHexPoints(data) {
 	
-	var maxCount = 0; // for colorScale
+	maxCount = 0; // for colorScale
 
 	// Loop through all hexagons
 	data.forEach(function(el) {
@@ -260,16 +261,21 @@ function rollupHexPoints(data) {
 
 	});
 
-	// Keep 20 as the maximum color scale domain value
-	var maxValue = Math.min(20, maxCount);
+	// Determine exponent for the colorScale interpolator
+	var exponent = 10;
 
 	// Create colorScale as soon as maximum number of datapoints is determined
-	colorScale = d3.scaleSequential(d3.interpolateViridis).domain([maxValue, 1]);
+	colorScale = d3.scaleSequential(function(t) {
+
+		var tNew = Math.pow(t, exponent);
+		return d3.interpolateViridis(tNew);
+
+	}).domain([maxCount, 1]);	
 
 	// Update slider
-	d3.select('#change-scale-input').property("max", maxCount);
-	d3.select('#change-scale-input').property("value", maxValue);
-	d3.select('#change-scale-value').html(maxValue);
+	d3.select('#change-scale-input').property("max", 100);
+	d3.select('#change-scale-input').property("value", exponent);
+	d3.select('#change-scale-value').html(exponent);
 
 	return data;
 
@@ -481,9 +487,19 @@ function changeSelectedSize() {
 // Add a slider to chnage the color scales maximum value
 d3.select('input').on('input', function() {
 
-	colorScale.domain([this.value, 1]);
+	var newExponent = this.value;
+
+	// Create new colorScale with user picked exponent
+	colorScale = d3.scaleSequential(function(t) {
+
+		var tUpdated = Math.pow(t, newExponent);
+		return d3.interpolateViridis(tUpdated);
+
+	}).domain([maxCount, 1]);	
+
 	d3.selectAll('.hex').style('fill', function(d) { return d.datapoints === 0 ? 'none' : colorScale(d.datapoints); });
-	d3.select('#change-scale-value').html(this.value);
+
+	d3.select('#change-scale-value').html(newExponent);
 
 });
 
