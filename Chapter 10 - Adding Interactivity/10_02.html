@@ -179,23 +179,71 @@ function ready(world) {
   });
   
 
+
   /* Interactivity */
   /* ============= */
+
+  // The deltaMove module offers a fallback for calculating delta x and y as Safari and IE 
+  // don't expose d3.event.sourceEvent.movementX and .y which we need for the globe rotation
+  var deltaMove = (function() {
+
+    var prevX = 0,
+        prevY = 0;
+
+    function getDeltas(event) {
+
+      var movementX = prevX ? event.screenX - prevX : 0;
+      var movementY = prevY ? event.screenY - prevY : 0;
+
+      prevX = event.screenX;
+      prevY = event.screenY;
+
+      return {
+        x: movementX,
+        y: movementY
+      }
+
+    }
+
+    function resetDeltas() {
+      prevX = 0;
+      prevY = 0;
+    }
+
+    return {
+      coords: getDeltas,
+      reset: resetDeltas
+    }
+
+  })();
+
 
   /* Zoom and pan */
   /* ------------ */
 
   var zoom = d3.zoom()
     .scaleExtent([0.5, 4])
-    .on("zoom", zoomed);
+    .on('zoom', zoomed)
+    .on('end', deltaMove.reset);
 
   canvas.call(zoom);
 
+
   function zoomed() {
 
-    // Get the mouse moves from the previous position
-    var dx = d3.event.sourceEvent.movementX;
-    var dy = d3.event.sourceEvent.movementY;
+    // Get the shift in x and y coordinates
+
+    // Cross-browser solution:
+    var delta = deltaMove.coords(d3.event.sourceEvent);
+
+    // get the deltas
+    var dx = delta.x;
+    var dy = delta.y;
+
+    // // Fine for Chrome, Firefox:
+    // var dx = d3.event.sourceEvent.movementX;
+    // var dy = d3.event.sourceEvent.movementY;
+
 
     // This will return either 'mousemove' or 'wheel'
     var event = d3.event.sourceEvent.type;
@@ -213,8 +261,11 @@ function ready(world) {
 
       // Change the rotation according to the user interaction
       var r = projection.rotate();
+      // rotation = [r[0] + dx * 0.4, r[1] - dy * 0.5, r[2]];
       rotation = [r[0] + dx * 0.4, r[1] - dy * 0.5, r[2]];
       projection.rotate(rotation);
+
+      // console.log(r, rotation, projection);
 
     } else { // fallback
 
