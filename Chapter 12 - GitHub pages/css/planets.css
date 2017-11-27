@@ -34,7 +34,7 @@ line {
 	font-size: 0.7rem;
 }
 
-a:link {
+a, a:link {
 	text-decoration: none;
 }
 a:visited {
